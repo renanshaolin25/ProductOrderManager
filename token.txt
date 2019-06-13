@@ -1,0 +1,8 @@
+{
+    "access_token": "M8L8Ko03IDDoQCLvmANdrYzybBsFs-ue4vm8slcg3msbLE1NZPd78btvo34lS7eao2RuToxcWkDSwVdrYDNrvpB358ThqMXGiM7buzpJSSQQTI_MPL5i1OxQZyEdx9iZwnlpwPoyYhgMDIFqA4rmK3bwcqXJeXfhYc4H2IdiQXBqzgFHAiW5nMYKPWv0ALJFJE_gP0zkbjYNiRxZLZKcFFEX85vfXKGGKgJq8DL5ZLxD1XWNYsU8iD_GqJ9FmalRAAEgI-ED9T90JGEyBcXY_l0bh3WTVOorKa9wGou_SK0cy1tcEUzRuR91FMY2-vrG1jDAc2_E_-qYmlEey9csVyckAwkcO9MxTIicci2EZkQczm-6C8ScLkl0dB4wgVq8nIhjxZPgpCovVEM6tP41NcdeLeKHbonX5aaekY10R_-08eexhFW4ZZuGbXJFhjNbvpbr9RLwthzZMGb1xz8sp7g5SBBTaJecSCJUBkHB14P6kSzzuPxr9Qq8NFna_NV8",
+    "token_type": "bearer",
+    "expires_in": 1209599,
+    "userName": "renan.shaolin.25@gmail.com",
+    ".issued": "Thu, 13 Jun 2019 02:40:26 GMT",
+    ".expires": "Thu, 27 Jun 2019 02:40:26 GMT"
+}

@@ -319,7 +319,7 @@ namespace ProductOrderManager.Controllers
         }
 
         // POST api/Account/Register
-        [AllowAnonymous]
+        [Authorize(Roles = "ADMIN")]
         [Route("Register")]
         public async Task<IHttpActionResult> Register(RegisterBindingModel model)
         {
@@ -327,16 +327,24 @@ namespace ProductOrderManager.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-
+            var user = new ApplicationUser()
+            {
+                UserName = model.Email,
+                Email = model.Email
+            };
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
             if (!result.Succeeded)
             {
                 return GetErrorResult(result);
             }
-
+            else
+            {
+                var addToRoleResult = await UserManager.AddToRoleAsync(user.Id, "USER");
+                if (!addToRoleResult.Succeeded)
+                {
+                    return GetErrorResult(result);
+                }
+            }
             return Ok();
         }
 
