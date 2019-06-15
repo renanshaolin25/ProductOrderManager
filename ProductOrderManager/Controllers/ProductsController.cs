@@ -17,12 +17,14 @@ namespace ProductOrderManager.Controllers
         private ProductOrderManagerContext db = new ProductOrderManagerContext();
 
         // GET: api/Products
+        [Authorize(Roles = "ADMIN, USER")]
         public IQueryable<Product> GetProducts()
         {
             return db.Products;
         }
 
         // GET: api/Products/5
+        [Authorize(Roles = "ADMIN, USER")]
         [ResponseType(typeof(Product))]
         public IHttpActionResult GetProduct(long id)
         {
@@ -36,6 +38,7 @@ namespace ProductOrderManager.Controllers
         }
 
         // PUT: api/Products/5
+        [Authorize(Roles = "ADMIN")]
         [ResponseType(typeof(void))]
         public IHttpActionResult PutProduct(long id, Product product)
         {
@@ -71,6 +74,7 @@ namespace ProductOrderManager.Controllers
         }
 
         // POST: api/Products
+        [Authorize(Roles = "ADMIN")]
         [ResponseType(typeof(Product))]
         public IHttpActionResult PostProduct(Product product)
         {
@@ -80,12 +84,20 @@ namespace ProductOrderManager.Controllers
             }
 
             db.Products.Add(product);
-            db.SaveChanges();
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateException e)
+            {
+                return NotFound();
+            }
 
             return CreatedAtRoute("DefaultApi", new { id = product.Id }, product);
         }
 
         // DELETE: api/Products/5
+        [Authorize(Roles = "ADMIN")]
         [ResponseType(typeof(Product))]
         public IHttpActionResult DeleteProduct(long id)
         {
