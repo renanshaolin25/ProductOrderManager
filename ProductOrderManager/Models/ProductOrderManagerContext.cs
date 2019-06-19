@@ -20,5 +20,7 @@ namespace ProductOrderManager.Models
         }
 
         public System.Data.Entity.DbSet<ProductOrderManager.Models.Product> Products { get; set; }
+
+        public System.Data.Entity.DbSet<ProductOrderManager.Models.Order> Orders { get; set; }
     }
 }

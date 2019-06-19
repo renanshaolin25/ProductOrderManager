@@ -8,7 +8,7 @@
     <ProductVersion>
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{56823733-8DDA-4055-B112-14DDB5142A7F}</ProjectGuid>
+    <ProjectGuid>{786EF2F2-3E47-4A79-B675-C4FE1624F1DE}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -207,16 +207,22 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\OrdersController.cs" />
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201906151637551_Initial.cs" />
-    <Compile Include="Migrations\201906151637551_Initial.Designer.cs">
-      <DependentUpon>201906151637551_Initial.cs</DependentUpon>
+    <Compile Include="Migrations\ApplicationDbContext\201906182241420_InitialDatabaseCreation.cs" />
+    <Compile Include="Migrations\ApplicationDbContext\201906182241420_InitialDatabaseCreation.Designer.cs">
+      <DependentUpon>201906182241420_InitialDatabaseCreation.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Migrations\ApplicationDbContext\Configuration.cs" />
+    <Compile Include="Migrations\ProductOrderManagerContext\201906182245499_InitialDatabaseCreation.cs" />
+    <Compile Include="Migrations\ProductOrderManagerContext\201906182245499_InitialDatabaseCreation.Designer.cs">
+      <DependentUpon>201906182245499_InitialDatabaseCreation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\ProductOrderManagerContext\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -259,7 +265,7 @@
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\CollectionModelDescription.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\ApiGroup.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\Api.cshtml" />
-    <None Include="Properties\PublishProfiles\ProductOrderManager - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\ProductOrderManager20190618092621 - Web Deploy.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
@@ -319,8 +325,11 @@
     <Content Include="Scripts\jquery-3.3.1.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201906151637551_Initial.resx">
-      <DependentUpon>201906151637551_Initial.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\ApplicationDbContext\201906182241420_InitialDatabaseCreation.resx">
+      <DependentUpon>201906182241420_InitialDatabaseCreation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\ProductOrderManagerContext\201906182245499_InitialDatabaseCreation.resx">
+      <DependentUpon>201906182245499_InitialDatabaseCreation.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
@@ -339,9 +348,9 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>64611</DevelopmentServerPort>
+          <DevelopmentServerPort>57146</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:64611/</IISUrl>
+          <IISUrl>http://localhost:57146/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

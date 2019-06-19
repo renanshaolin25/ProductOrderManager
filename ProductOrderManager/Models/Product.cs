@@ -13,13 +13,15 @@ namespace ProductOrderManager.Models
 
         [Required]
         public string name { get; set; }
+
         [Required]
         [StringLength(200)]
         [Index(IsUnique = true)]
         public string model { get; set; }
+
         [Required]
         [StringLength(200)]
-        [Index(IsUnique=true)]
+        [Index(IsUnique = true)]
         public string code { get; set; }
 
         public string description { get; set; }

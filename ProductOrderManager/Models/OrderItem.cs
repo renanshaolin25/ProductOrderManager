@@ -13,7 +13,7 @@ namespace ProductOrderManager.Models
         public int qttProduct { get; set; }
 
         public long productId { get; set; }
-        
+
         public long orderId { get; set; }
 
         public Product product { get; set; }
