@@ -17,12 +17,12 @@ namespace ProductOrderManager.Models
 
         public string orderStatus { get; set; }
 
-        public string totalPrice { get; set; }
+        public decimal totalPrice { get; set; }
 
-        public string totalWeight { get; set; }
+        public decimal totalWeight { get; set; }
 
-        public string freightPrice { get; set; }
+        public decimal freightPrice { get; set; }
 
-        public List<OrderItem> orderItems { get; set; }
+        public virtual ICollection<OrderItem> OrderItems { get; set; }
     }
 }

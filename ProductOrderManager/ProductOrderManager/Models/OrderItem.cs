@@ -12,10 +12,10 @@ namespace ProductOrderManager.Models
 
         public int qttProduct { get; set; }
 
-        public long productId { get; set; }
+        public long ProductId { get; set; }
 
-        public long orderId { get; set; }
+        public virtual Product Product { get; set; }
 
-        public Product product { get; set; }
+        public long OrderId { get; set; }
     }
 }

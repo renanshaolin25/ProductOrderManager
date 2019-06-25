@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -17,6 +18,7 @@ namespace ProductOrderManager.Controllers
         private ProductOrderManagerContext db = new ProductOrderManagerContext();
 
         // GET: api/Orders
+        [Authorize(Roles = "ADMIN")]
         public IQueryable<Order> GetOrders()
         {
             return db.Orders;
@@ -27,12 +29,17 @@ namespace ProductOrderManager.Controllers
         public IHttpActionResult GetOrder(long id)
         {
             Order order = db.Orders.Find(id);
+
             if (order == null)
             {
-                return NotFound();
+                return BadRequest("Pedido não encontrado!");
             }
 
-            return Ok(order);
+            if (!User.Identity.Name.Equals(order.email) || !User.IsInRole("ADMIN"))
+            {
+                return BadRequest("Acesso Não Autorizado!");
+            }
+            return Ok(order);            
         }
 
         // PUT: api/Orders/5
@@ -71,6 +78,7 @@ namespace ProductOrderManager.Controllers
         }
 
         // POST: api/Orders
+        [Authorize(Roles = "ADMIN, USER")]
         [ResponseType(typeof(Order))]
         public IHttpActionResult PostOrder(Order order)
         {
@@ -78,6 +86,11 @@ namespace ProductOrderManager.Controllers
             {
                 return BadRequest(ModelState);
             }
+            order.orderStatus = "novo";
+            order.totalWeight = 0;
+            order.freightPrice = 0;
+            order.totalPrice = 0;
+            order.orderDate = new DateTime();
 
             db.Orders.Add(order);
             db.SaveChanges();
