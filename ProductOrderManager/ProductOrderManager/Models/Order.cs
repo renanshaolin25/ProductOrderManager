@@ -11,9 +11,9 @@ namespace ProductOrderManager.Models
 
         public string email { get; set; }
 
-        public DateTime orderDate { get; set; }
+        public DateTime? orderDate { get; set; }
 
-        public DateTime deliveryDate { get; set; }
+        public DateTime? deliveryDate { get; set; }
 
         public string orderStatus { get; set; }
 
@@ -24,5 +24,11 @@ namespace ProductOrderManager.Models
         public decimal freightPrice { get; set; }
 
         public virtual ICollection<OrderItem> OrderItems { get; set; }
+
+        public Order()
+        {
+            this.OrderItems = new HashSet<OrderItem>();
+        }
+
     }
 }

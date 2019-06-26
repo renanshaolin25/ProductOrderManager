@@ -221,6 +221,14 @@
     <Compile Include="Migrations\201906250106088_AddOrder.Designer.cs">
       <DependentUpon>201906250106088_AddOrder.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201906260146052_ChangeHourOrder.cs" />
+    <Compile Include="Migrations\201906260146052_ChangeHourOrder.Designer.cs">
+      <DependentUpon>201906260146052_ChangeHourOrder.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201906260225116_ChangeOrderContructor.cs" />
+    <Compile Include="Migrations\201906260225116_ChangeOrderContructor.Designer.cs">
+      <DependentUpon>201906260225116_ChangeOrderContructor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
@@ -329,6 +337,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201906250106088_AddOrder.resx">
       <DependentUpon>201906250106088_AddOrder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201906260146052_ChangeHourOrder.resx">
+      <DependentUpon>201906260146052_ChangeHourOrder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201906260225116_ChangeOrderContructor.resx">
+      <DependentUpon>201906260225116_ChangeOrderContructor.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

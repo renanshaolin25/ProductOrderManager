@@ -19,9 +19,9 @@ namespace ProductOrderManager.Controllers
 
         // GET: api/Orders
         [Authorize(Roles = "ADMIN")]
-        public IQueryable<Order> GetOrders()
+        public List<Order> GetOrders()
         {
-            return db.Orders;
+            return db.Orders.Include(order => order.OrderItems).ToList();
         }
 
         // GET: api/Orders/5
@@ -35,11 +35,15 @@ namespace ProductOrderManager.Controllers
                 return BadRequest("Pedido não encontrado!");
             }
 
-            if (!User.Identity.Name.Equals(order.email) || !User.IsInRole("ADMIN"))
+            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            {
+                return Ok(order);
+            }
+            else
             {
                 return BadRequest("Acesso Não Autorizado!");
             }
-            return Ok(order);            
+                  
         }
 
         // PUT: api/Orders/5
@@ -90,7 +94,7 @@ namespace ProductOrderManager.Controllers
             order.totalWeight = 0;
             order.freightPrice = 0;
             order.totalPrice = 0;
-            order.orderDate = new DateTime();
+            order.orderDate = DateTime.Now;
 
             db.Orders.Add(order);
             db.SaveChanges();
