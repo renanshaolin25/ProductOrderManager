@@ -13,9 +13,12 @@ using ProductOrderManager.Models;
 
 namespace ProductOrderManager.Controllers
 {
+    [Authorize]
+    [RoutePrefix("api/orders")]
     public class OrdersController : ApiController
     {
         private ProductOrderManagerContext db = new ProductOrderManagerContext();
+
 
         // GET: api/Orders
         [Authorize(Roles = "ADMIN")]
@@ -43,7 +46,74 @@ namespace ProductOrderManager.Controllers
             {
                 return BadRequest("Acesso Não Autorizado!");
             }
-                  
+        }
+
+        // GET: api/Orders/byemail?email=renan@gmail.com
+        [ResponseType(typeof(Order))]
+        [Route("byemail")]
+        [HttpGet]
+        public List<Order> GetOrders(string email)
+        {
+            if (User.Identity.Name.Equals(email) || User.IsInRole("ADMIN"))
+            {
+                return db.Orders.Where(p => p.email == email).Include(order => order.OrderItems).ToList();
+            }
+            else
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Acesso Não Autorizado!"));
+            }
+        }
+
+        // PUT: api/Orders/close/5
+        [ResponseType(typeof(Order))]
+        [Route("close")]
+        [HttpPut]
+        public IHttpActionResult CloseOrder(long id, Order order)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != order.Id)
+            {
+                return BadRequest("Pedido não encontrado!");
+            }
+
+            db.Entry(order).State = EntityState.Modified;
+
+            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            {
+                try
+                {
+                    if (Decimal.ToDouble(order.freightPrice) == 0.0)
+                    {
+                        return BadRequest("É necessário calcular o frete antes de fechar o pedido!");
+                    }
+                    else
+                    {
+                        order.orderStatus = "fechado";
+                        db.SaveChanges();
+                    }
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!OrderExists(id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+            else
+            {
+                return BadRequest("Acesso Não Autorizado!");
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
         }
 
         // PUT: api/Orders/5
@@ -109,11 +179,18 @@ namespace ProductOrderManager.Controllers
             Order order = db.Orders.Find(id);
             if (order == null)
             {
-                return NotFound();
+                return BadRequest("Pedido não encontrado!");
             }
 
-            db.Orders.Remove(order);
-            db.SaveChanges();
+            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            {
+                db.Orders.Remove(order);
+                db.SaveChanges();
+            }
+            else
+            {
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Acesso Não Autorizado!"));
+            }
 
             return Ok(order);
         }
