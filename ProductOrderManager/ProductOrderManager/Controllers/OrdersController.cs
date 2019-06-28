@@ -10,6 +10,8 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
 using ProductOrderManager.Models;
+using ProductOrderManager.br.com.correios.ws;
+using ProductOrderManager.CRMClient;
 
 namespace ProductOrderManager.Controllers
 {
@@ -193,6 +195,55 @@ namespace ProductOrderManager.Controllers
             }
 
             return Ok(order);
+        }
+
+        // GET: api/Orders/frete?id=5
+        [ResponseType(typeof(string))]
+        [HttpGet]
+        [Route("frete")]
+        public IHttpActionResult CalculaFrete(long id)
+        {
+            Order order = db.Orders.Find(id);
+
+            if (order == null)
+            {
+                return BadRequest("Pedido não encontrado!");
+            }
+
+            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            {
+                CRMRestClient crmClient = new CRMRestClient();
+                Customer customer = crmClient.GetCustomerByEmail(User.Identity.Name);
+                if (customer != null)
+                {
+                    CalcPrecoPrazoWS correios = new CalcPrecoPrazoWS();
+                    string frete = "";
+
+                    foreach (OrderItem orderItem in order.OrderItems)
+                    {
+                        cResultado resultado = correios.CalcPrecoPrazo("", "", " 40010", "04236094", customer.zip.Replace("-",""), Convert.ToString(orderItem.Product.weight), 1, orderItem.Product.length, orderItem.Product.height, orderItem.Product.width, orderItem.Product.diameter, "N", orderItem.Product.price, "S");
+                        if (resultado.Servicos[0].Erro.Equals("0"))
+                        {
+                            frete = frete + "\nValor do frete: " + resultado.Servicos[0].Valor + " - Prazo de entrega: " + resultado.Servicos[0].PrazoEntrega + " dia(s)";
+                        }
+                        else
+                        {
+                            return BadRequest("Falha na consulta dos correios, erro: " + resultado.Servicos[0].Erro + "-" + resultado.Servicos[0].MsgErro);
+                        }
+                    }
+                    return Ok(frete);
+                }
+                else
+                {
+                    return BadRequest("Falha ao consultar o CRM");
+                }
+                
+            }
+            else
+            {
+                return BadRequest("Acesso Não Autorizado!");
+            }
+                       
         }
 
         protected override void Dispose(bool disposing)
