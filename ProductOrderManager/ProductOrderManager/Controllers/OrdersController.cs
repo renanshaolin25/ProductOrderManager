@@ -20,7 +20,10 @@ namespace ProductOrderManager.Controllers
     public class OrdersController : ApiController
     {
         private ProductOrderManagerContext db = new ProductOrderManagerContext();
-
+        decimal totalWidth;
+        decimal maxHeight;
+        decimal maxLength;
+        decimal maxDiameter;
 
         // GET: api/Orders
         [Authorize(Roles = "ADMIN")]
@@ -40,14 +43,13 @@ namespace ProductOrderManager.Controllers
                 return BadRequest("Pedido não encontrado!");
             }
 
-            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            if (!isAuthenticated(order.email))
             {
-                return Ok(order);
+                return BadRequest("Acesso não autorizado!");
             }
-            else
-            {
-                return BadRequest("Acesso Não Autorizado!");
-            }
+
+            return Ok(order);
+  
         }
 
         // GET: api/Orders/byemail?email=renan@gmail.com
@@ -56,14 +58,13 @@ namespace ProductOrderManager.Controllers
         [HttpGet]
         public List<Order> GetOrders(string email)
         {
-            if (User.Identity.Name.Equals(email) || User.IsInRole("ADMIN"))
+            if (!isAuthenticated(email))
             {
-                return db.Orders.Where(p => p.email == email).Include(order => order.OrderItems).ToList();
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Acesso não autorizado!"));
             }
-            else
-            {
-                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Acesso Não Autorizado!"));
-            }
+
+            return db.Orders.Where(p => p.email == email).Include(order => order.OrderItems).ToList();
+            
         }
 
         // PUT: api/Orders/close/5
@@ -82,37 +83,33 @@ namespace ProductOrderManager.Controllers
                 return BadRequest("Pedido não encontrado!");
             }
 
-            db.Entry(order).State = EntityState.Modified;
 
-            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            if (!isAuthenticated(order.email))
             {
-                try
-                {
-                    if (Decimal.ToDouble(order.freightPrice) == 0.0)
-                    {
-                        return BadRequest("É necessário calcular o frete antes de fechar o pedido!");
-                    }
-                    else
-                    {
-                        order.orderStatus = "fechado";
-                        db.SaveChanges();
-                    }
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return BadRequest("Acesso não autorizado!");
             }
-            else
+
+            if (order.freightPrice == 0)
             {
-                return BadRequest("Acesso Não Autorizado!");
+                return BadRequest("É necessário calcular o frete antes de fechar o pedido!");
+            }
+
+            db.Entry(order).State = EntityState.Modified;  
+            try
+            {
+                order.orderStatus = "fechado";
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return StatusCode(HttpStatusCode.NoContent);
@@ -184,66 +181,107 @@ namespace ProductOrderManager.Controllers
                 return BadRequest("Pedido não encontrado!");
             }
 
-            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
+            if (!isAuthenticated(order.email))
             {
-                db.Orders.Remove(order);
-                db.SaveChanges();
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Acesso não autorizado!"));
             }
-            else
-            {
-                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Acesso Não Autorizado!"));
-            }
+            
+            db.Orders.Remove(order);
+            db.SaveChanges();
 
             return Ok(order);
         }
 
-        // GET: api/Orders/frete?id=5
+        // PUT: api/Orders/frete?id=5
         [ResponseType(typeof(string))]
-        [HttpGet]
+        [HttpPut]
         [Route("frete")]
-        public IHttpActionResult CalculaFrete(long id)
+        public IHttpActionResult CalculaFrete(long id, Order order)
         {
-            Order order = db.Orders.Find(id);
-
-            if (order == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Pedido não encontrado!");
+                return BadRequest(ModelState);
             }
 
-            if (User.Identity.Name.Equals(order.email) || User.IsInRole("ADMIN"))
-            {
-                CRMRestClient crmClient = new CRMRestClient();
-                Customer customer = crmClient.GetCustomerByEmail(User.Identity.Name);
-                if (customer != null)
-                {
-                    CalcPrecoPrazoWS correios = new CalcPrecoPrazoWS();
-                    string frete = "";
+            if (id != order.Id)
+                return BadRequest("Pedido não encontrado!");
 
-                    foreach (OrderItem orderItem in order.OrderItems)
-                    {
-                        cResultado resultado = correios.CalcPrecoPrazo("", "", " 40010", "04236094", customer.zip.Replace("-",""), Convert.ToString(orderItem.Product.weight), 1, orderItem.Product.length, orderItem.Product.height, orderItem.Product.width, orderItem.Product.diameter, "N", orderItem.Product.price, "S");
-                        if (resultado.Servicos[0].Erro.Equals("0"))
-                        {
-                            frete = frete + "\nValor do frete: " + resultado.Servicos[0].Valor + " - Prazo de entrega: " + resultado.Servicos[0].PrazoEntrega + " dia(s)";
-                        }
-                        else
-                        {
-                            return BadRequest("Falha na consulta dos correios, erro: " + resultado.Servicos[0].Erro + "-" + resultado.Servicos[0].MsgErro);
-                        }
-                    }
-                    return Ok(frete);
+            
+            CRMRestClient crmClient = new CRMRestClient();
+            Customer customer = crmClient.GetCustomerByEmail(User.Identity.Name);
+            CalcPrecoPrazoWS correios = new CalcPrecoPrazoWS();
+            order.totalPrice = 0;
+            order.totalWeight = 0;
+            totalWidth = 0;
+            maxHeight = 0;
+            maxLength = 0;
+            maxDiameter = 0;
+
+            if (!isAuthenticated(order.email))
+                return BadRequest("Acesso não autorizado!");
+
+            if (customer == null)
+                return BadRequest("Falha ao consultar o CRM");
+
+            if (order.OrderItems.Count == 0)
+                return BadRequest("Pedido não contem itens!");
+
+            if (!order.orderStatus.Equals("novo"))
+                return BadRequest("Pedido com status diferente de novo!");
+
+            getFreightParameters(order);
+            
+            cResultado resultado = correios.CalcPrecoPrazo("", "", " 04014", "04236094", customer.zip.Replace("-",""), Convert.ToString(order.totalWeight), 1, maxLength, maxHeight, totalWidth, maxDiameter, "N", order.totalPrice, "S");
+
+            if (!resultado.Servicos[0].Erro.Equals("0"))
+                return BadRequest("Falha na consulta dos correios, erro: " + resultado.Servicos[0].Erro + "-" + resultado.Servicos[0].MsgErro);
+
+            order.freightPrice = Decimal.Parse(resultado.Servicos[0].Valor.Replace(",", "."));
+
+            order.deliveryDate = DateTime.Now.AddDays(Double.Parse(resultado.Servicos[0].PrazoEntrega));
+
+            order.totalPrice = order.totalPrice + order.freightPrice;
+
+            string result = "Valor do frete: " + order.freightPrice + " - Prazo de entrega até : " + order.deliveryDate;
+
+            db.Entry(order).State = EntityState.Modified;
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(id))
+                {
+                    return NotFound();
                 }
                 else
                 {
-                    return BadRequest("Falha ao consultar o CRM");
+                    throw;
                 }
-                
             }
-            else
+
+            return Ok(result);
+
+        }
+
+        private void getFreightParameters(Order order)
+        {
+            foreach (OrderItem orderItem in order.OrderItems)
             {
-                return BadRequest("Acesso Não Autorizado!");
+                if(orderItem.Product.height > maxHeight)
+                    maxHeight = orderItem.Product.height;
+                
+                if(orderItem.Product.length > maxLength)
+                    maxLength = orderItem.Product.length;
+
+                if (orderItem.Product.diameter > maxDiameter)
+                    maxDiameter = orderItem.Product.diameter;
+
+                order.totalPrice += orderItem.Product.price;
+                order.totalWeight += orderItem.Product.weight;
+                totalWidth += orderItem.Product.width;
             }
-                       
         }
 
         protected override void Dispose(bool disposing)
@@ -253,6 +291,11 @@ namespace ProductOrderManager.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
+        }
+
+        private bool isAuthenticated(string email)
+        {
+            return User.Identity.Name.Equals(email) || User.IsInRole("ADMIN");
         }
 
         private bool OrderExists(long id)
